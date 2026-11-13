@@ -238,7 +238,7 @@ function Campo({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor}>{label}</Label>
+      <Label {...(htmlFor ? { htmlFor } : {})}>{label}</Label>
       {children}
       {erro && <p className="text-xs text-destructive">{erro}</p>}
     </div>
