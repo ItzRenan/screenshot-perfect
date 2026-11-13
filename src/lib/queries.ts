@@ -6,7 +6,7 @@ import { mensagemDeErro } from "./errors";
 
 export type Cliente = Tables<"clientes">;
 
-function fail(error: { code?: string; message?: string }): never {
+function fail(error: { code?: string | undefined; message?: string | undefined }): never {
   console.error(error);
   throw new Error(mensagemDeErro(error, "Não foi possível carregar os dados."));
 }
