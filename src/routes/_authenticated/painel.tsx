@@ -42,7 +42,7 @@ function Painel() {
   return (
     <>
       <PageHeader
-        title="Painel"
+        title="Dashboard"
         description={`Competência atual: ${data.competencia}`}
         action={
           <Button asChild variant="hero">

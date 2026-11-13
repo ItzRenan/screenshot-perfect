@@ -21,6 +21,7 @@ import {
 import { clientesQuery, type Cliente } from "@/lib/queries";
 import { formatCNPJ, formatPhone } from "@/lib/format";
 import { mensagemDeErro } from "@/lib/errors";
+import { BUCKET_BOLETOS } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -48,13 +49,23 @@ function ClientesPage() {
 
   const excluir = useMutation({
     mutationFn: async (id: string) => {
+      // Os boletos do cliente são apagados junto (regra do banco); removemos também os PDFs.
+      const { data: boletos, error: errBol } = await supabase.from("boletos").select("arquivo_path").eq("cliente_id", id);
+      if (errBol) throw errBol;
       const { error } = await supabase.from("clientes").delete().eq("id", id);
       if (error) throw error;
+      const paths = (boletos ?? []).map((b) => b.arquivo_path).filter((p): p is string => !!p);
+      if (paths.length) {
+        const { error: errArq } = await supabase.storage.from(BUCKET_BOLETOS).remove(paths);
+        if (errArq) console.error(errArq);
+      }
     },
     onSuccess: () => {
       toast.success("Cliente excluído.");
       queryClient.invalidateQueries({ queryKey: ["clientes"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["boletos"] });
+      queryClient.invalidateQueries({ queryKey: ["historico"] });
       setExcluindo(null);
     },
     onError: (err: { code?: string; message?: string }) => {
@@ -180,7 +191,8 @@ function ClientesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              {excluindo?.nome} será removido permanentemente. Esta ação não pode ser desfeita.
+              {excluindo?.nome} será removido permanentemente, junto com todos os boletos, PDFs e histórico de envios
+              dele. Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
