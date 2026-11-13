@@ -63,3 +63,39 @@ export function formatDateTime(value: string | null | undefined): string {
     minute: "2-digit",
   });
 }
+
+/** Valida competência MM/AAAA (mês 01–12, ano 2000–2099). */
+export function isValidCompetencia(value: string): boolean {
+  return /^(0[1-9]|1[0-2])\/20\d{2}$/.test(value);
+}
+
+/** Máscara MM/AAAA enquanto digita. */
+export function formatCompetenciaInput(value: string): string {
+  const d = onlyDigits(value).slice(0, 6);
+  return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+}
+
+/** Vencimento padrão do DAS: dia escolhido do mês seguinte à competência (AAAA-MM-DD). */
+export function vencimentoPadrao(competencia: string, dia: number): string {
+  if (!isValidCompetencia(competencia)) return "";
+  const [mes, ano] = competencia.split("/").map(Number) as [number, number];
+  const proxMes = mes === 12 ? 1 : mes + 1;
+  const proxAno = mes === 12 ? ano + 1 : ano;
+  return `${proxAno}-${String(proxMes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+}
+
+/** Converte "1.234,56" ou "1234.56" em número. Retorna null se inválido. */
+export function parseValorBRL(value: string): number | null {
+  const clean = value.replace(/[R$\s]/g, "");
+  if (!clean) return null;
+  const normalized = clean.includes(",") ? clean.replace(/\./g, "").replace(",", ".") : clean;
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  return Number(normalized);
+}
+
+/** Data AAAA-MM-DD para DD/MM/AAAA, sem conversão de fuso. */
+export function formatDate(value: string | null | undefined): string {
+  if (!value) return "—";
+  const [a, m, d] = value.slice(0, 10).split("-");
+  return a && m && d ? `${d}/${m}/${a}` : "—";
+}
