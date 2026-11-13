@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { competenciaDe, onlyDigits } from "./format";
 import { mensagemDeErro } from "./errors";
+import { MENSAGEM_PADRAO } from "./whatsapp";
 
 export type Cliente = Tables<"clientes">;
 
@@ -104,6 +105,60 @@ export const dashboardQuery = () =>
         pendentes: pendentes.count ?? 0,
         enviados: enviados.count ?? 0,
         atividades,
+      };
+    },
+  });
+
+export const boletosQuery = () =>
+  queryOptions({
+    queryKey: ["boletos"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("boletos")
+        .select("*, clientes(id, nome, telefone, cnpj)")
+        .order("created_at", { ascending: false });
+      if (error) fail(error);
+      return data;
+    },
+  });
+
+export type BoletoComCliente = Awaited<ReturnType<NonNullable<ReturnType<typeof boletosQuery>["queryFn"]>>>[number];
+
+export const historicoQuery = () =>
+  queryOptions({
+    queryKey: ["historico"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("envios")
+        .select("*, boletos(id, competencia, valor, vencimento, arquivo_path, clientes(nome, telefone))")
+        .order("created_at", { ascending: false });
+      if (error) fail(error);
+      return data;
+    },
+  });
+
+export type Configuracoes = {
+  nome_admin: string;
+  escritorio: string;
+  mensagem_whatsapp: string;
+  whatsapp_destino: "app" | "web";
+  dia_vencimento_padrao: number;
+  salvo: boolean;
+};
+
+export const configuracoesQuery = () =>
+  queryOptions({
+    queryKey: ["configuracoes"],
+    queryFn: async (): Promise<Configuracoes> => {
+      const { data, error } = await supabase.from("configuracoes").select("*").maybeSingle();
+      if (error) fail(error);
+      return {
+        nome_admin: data?.nome_admin ?? "",
+        escritorio: data?.escritorio ?? "",
+        mensagem_whatsapp: data?.mensagem_whatsapp || MENSAGEM_PADRAO,
+        whatsapp_destino: data?.whatsapp_destino === "web" ? "web" : "app",
+        dia_vencimento_padrao: data?.dia_vencimento_padrao ?? 20,
+        salvo: !!data,
       };
     },
   });
