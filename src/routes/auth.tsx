@@ -44,7 +44,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: destinoSeguro(redirect), replace: true });
+      if (data.user) navigate({ href: destinoSeguro(redirect), replace: true });
     });
   }, [navigate, redirect]);
 
@@ -63,7 +63,7 @@ function AuthPage() {
       return;
     }
     toast.success("Bem-vindo de volta!");
-    navigate({ to: destinoSeguro(redirect), replace: true });
+    navigate({ href: destinoSeguro(redirect), replace: true });
   }
 
   return (
