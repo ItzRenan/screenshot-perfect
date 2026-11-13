@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Data access goes through the browser Supabase client with the user's session; RLS (user_id = auth.uid()) is the security boundary, so never use service-role clients for app data.
+- Protected pages live under `src/routes/_authenticated/` (client-only gate, redirects to `/auth`); `/` redirects to `/painel`.
+- CNPJ and phone are stored as digits only and formatted for display (`src/lib/format.ts`); competência is stored as `MM/AAAA`.
+- Storage files must be uploaded under `<auth.uid()>/...` in the private `boletos-mei` bucket to satisfy its existing policies.
