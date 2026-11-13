@@ -118,11 +118,13 @@ export const boletosQuery = () =>
         .select("*, clientes(id, nome, telefone, cnpj)")
         .order("created_at", { ascending: false });
       if (error) fail(error);
-      return data;
+      return data as BoletoComCliente[];
     },
   });
 
-export type BoletoComCliente = Awaited<ReturnType<NonNullable<ReturnType<typeof boletosQuery>["queryFn"]>>>[number];
+export type BoletoComCliente = Tables<"boletos"> & {
+  clientes: Pick<Cliente, "id" | "nome" | "telefone" | "cnpj"> | null;
+};
 
 export const historicoQuery = () =>
   queryOptions({
