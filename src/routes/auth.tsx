@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/app/Logo";
 import { mensagemDeErro } from "@/lib/errors";
 
-type AuthSearch = { redirect?: string };
+type AuthSearch = { redirect?: string | undefined };
 
 function destinoSeguro(path: string | undefined): string {
   if (!path || !path.startsWith("/") || path.startsWith("//") || path.startsWith("/auth")) return "/painel";
@@ -18,7 +18,7 @@ function destinoSeguro(path: string | undefined): string {
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+    redirect: typeof search["redirect"] === "string" ? search["redirect"] : undefined,
   }),
   head: () => ({
     meta: [

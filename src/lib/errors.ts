@@ -1,4 +1,4 @@
-type MaybeError = { code?: string; message?: string } | null | undefined;
+type MaybeError = { code?: string | undefined; message?: string | undefined } | null | undefined;
 
 /** Converte erros do banco/autenticação em mensagens claras em português. */
 export function mensagemDeErro(error: MaybeError, fallback = "Algo deu errado. Tente novamente."): string {

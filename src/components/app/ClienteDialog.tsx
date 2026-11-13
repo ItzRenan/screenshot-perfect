@@ -129,7 +129,7 @@ export function ClienteDialog({
   );
 }
 
-function Campo({ id, label, erro, children }: { id: string; label: string; erro?: string; children: ReactNode }) {
+function Campo({ id, label, erro, children }: { id: string; label: string; erro?: string | undefined; children: ReactNode }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>

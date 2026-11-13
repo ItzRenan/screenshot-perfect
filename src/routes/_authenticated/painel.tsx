@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/painel")({
   pendingComponent: () => <p className="text-sm text-muted-foreground">Carregando painel...</p>,
   errorComponent: ({ error }) => (
     <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-      {error.message}
+      {error instanceof Error ? error.message : "Não foi possível carregar o painel."}
     </p>
   ),
   component: Painel,
