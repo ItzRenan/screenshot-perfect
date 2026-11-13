@@ -85,6 +85,39 @@ export type Database = {
         }
         Relationships: []
       }
+      configuracoes: {
+        Row: {
+          created_at: string
+          dia_vencimento_padrao: number
+          escritorio: string | null
+          mensagem_whatsapp: string | null
+          nome_admin: string | null
+          updated_at: string
+          user_id: string
+          whatsapp_destino: string
+        }
+        Insert: {
+          created_at?: string
+          dia_vencimento_padrao?: number
+          escritorio?: string | null
+          mensagem_whatsapp?: string | null
+          nome_admin?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_destino?: string
+        }
+        Update: {
+          created_at?: string
+          dia_vencimento_padrao?: number
+          escritorio?: string | null
+          mensagem_whatsapp?: string | null
+          nome_admin?: string | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_destino?: string
+        }
+        Relationships: []
+      }
       envios: {
         Row: {
           boleto_id: string | null
