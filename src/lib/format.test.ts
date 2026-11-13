@@ -37,3 +37,25 @@ describe("Competência", () => {
     expect(competenciaDe(new Date(2026, 0, 5))).toBe("01/2026");
   });
 });
+
+import { isValidCompetencia, parseValorBRL, vencimentoPadrao, formatDate } from "./format";
+
+describe("Boletos", () => {
+  it("vencimento padrão é no mês seguinte à competência", () => {
+    expect(vencimentoPadrao("11/2026", 20)).toBe("2026-12-20");
+    expect(vencimentoPadrao("12/2026", 20)).toBe("2027-01-20");
+  });
+  it("valida competência MM/AAAA", () => {
+    expect(isValidCompetencia("11/2026")).toBe(true);
+    expect(isValidCompetencia("13/2026")).toBe(false);
+    expect(isValidCompetencia("1/2026")).toBe(false);
+  });
+  it("converte valores em reais", () => {
+    expect(parseValorBRL("75,90")).toBe(75.9);
+    expect(parseValorBRL("1.234,56")).toBe(1234.56);
+    expect(parseValorBRL("abc")).toBeNull();
+  });
+  it("formata data sem mudar o dia por fuso", () => {
+    expect(formatDate("2026-12-20")).toBe("20/12/2026");
+  });
+});

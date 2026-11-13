@@ -1,18 +1,23 @@
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Users } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FileText, History, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { configuracoesQuery } from "@/lib/queries";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./Logo";
 
 const NAV = [
-  { to: "/painel", label: "Painel", icon: LayoutDashboard },
+  { to: "/painel", label: "Dashboard", icon: LayoutDashboard },
   { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/boletos", label: "Boletos", icon: FileText },
+  { to: "/historico", label: "Histórico", icon: History },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
 
 export function AppShell({ email }: { email: string | undefined }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: config } = useQuery(configuracoesQuery());
 
   async function sair() {
     await queryClient.cancelQueries();
@@ -47,9 +52,12 @@ export function AppShell({ email }: { email: string | undefined }) {
           ))}
         </nav>
         <div className="mt-auto space-y-3 border-t border-sidebar-border pt-4">
-          <p className="truncate px-2 text-xs text-muted-foreground" title={email}>
-            {email}
-          </p>
+          <div className="px-2">
+            {config?.nome_admin && <p className="truncate text-sm font-medium text-foreground">{config.nome_admin}</p>}
+            <p className="truncate text-xs text-muted-foreground" title={email}>
+              {email}
+            </p>
+          </div>
           <button
             onClick={sair}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/75 transition-colors hover:bg-destructive/15 hover:text-destructive"
@@ -79,16 +87,16 @@ export function AppShell({ email }: { email: string | undefined }) {
       </main>
 
       {/* Navegação inferior (celular) */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-2 border-t border-border bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         {NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
             to={to}
-            className="flex flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground"
+            className="flex flex-col items-center gap-1 px-1 py-2.5 text-[11px] font-medium text-muted-foreground"
             activeProps={{ className: "!text-primary" }}
           >
             <Icon className="size-5" />
-            {label}
+            <span className="max-w-full truncate">{label === "Configurações" ? "Ajustes" : label}</span>
           </Link>
         ))}
       </nav>
