@@ -181,8 +181,15 @@ app.post("/api/jobs/:id/continue", auth, async (req, res) => {
       return res.status(409).json({ error: "O PGMEI ainda está na identificação. Conclua a validação na sessão visual e tente novamente." });
     }
     session.continuing = true;
-    const result = await processAfterManualCheck(req.params.id);
-    return res.json(result);
+    const jobId = req.params.id;
+    // Return immediately: PDF generation can take longer than an Edge Function request.
+    void processAfterManualCheck(jobId).catch(async (error) => {
+      await closeSession(jobId);
+      await falharJob(supabase, jobId, error, true).catch((failure) => {
+        process.stderr.write("Falha ao registrar erro de continuação: " + failure.message + "\\n");
+      });
+    });
+    return res.status(202).json({ id: jobId, status: "processing", message: "Consulta retomada; acompanhe o status da solicitação." });
   } catch (error) {
     await closeSession(req.params.id);
     await falharJob(supabase, req.params.id, error, true).catch(() => {});
