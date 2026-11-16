@@ -98,26 +98,15 @@ function ImportacoesPage() {
       if (!client || client.cnpj.replace(/\D/g, "") !== cnpj) {
         throw new Error("O CNPJ extraído não corresponde ao cliente selecionado.");
       }
-      const { data: duplicate, error: dupError } = await supabase.from("boletos").select("id")
-        .eq("cliente_id", clienteId).eq("competencia", competencia).limit(1);
-      if (dupError) throw dupError;
-      if (duplicate?.length) throw new Error("Já existe boleto para este cliente e competência.");
-      const { data: boleto, error: boletoError } = await supabase.from("boletos").insert({
-        cliente_id: clienteId, competencia, vencimento, valor, arquivo_path: item.arquivo_path,
-        status: "pendente", user_id: user.id,
-      }).select("id").single();
-      if (boletoError) throw boletoError;
-      const { error: sendError } = await supabase.from("envios").insert({
-        boleto_id: boleto.id, user_id: user.id, status: "aprovado",
+      const { error: approveError } = await supabase.rpc("approve_mei_import_item", {
+        p_item_id: item.id,
+        p_cliente_id: clienteId,
+        p_cnpj: cnpj,
+        p_competencia: competencia,
+        p_valor: valor,
+        p_vencimento: vencimento,
       });
-      if (sendError) {
-        await supabase.from("boletos").delete().eq("id", boleto.id);
-        throw sendError;
-      }
-      const { error: itemError } = await supabase.from("mei_import_itens").update({
-        status: "importado", cliente_id: clienteId, boleto_id: boleto.id, extraido_json: value, erro: null,
-      }).eq("id", item.id);
-      if (itemError) throw itemError;
+      if (approveError) throw approveError;
     },
     onSuccess: () => {
       toast.success("Boleto aprovado e colocado na fila de envio.");
