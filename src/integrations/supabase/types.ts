@@ -168,7 +168,6 @@ export type Database = {
           },
         ]
       }
-    }
       mei_import_lotes: {
         Row: { id: string; user_id: string; nome: string | null; total_itens: number; status: string; created_at: string; updated_at: string }
         Insert: { id?: string; user_id: string; nome?: string | null; total_itens?: number; status?: string; created_at?: string; updated_at?: string }
@@ -185,6 +184,7 @@ export type Database = {
           { foreignKeyName: "mei_import_itens_boleto_id_fkey"; columns: ["boleto_id"]; isOneToOne: false; referencedRelation: "boletos"; referencedColumns: ["id"] }
         ]
       }
+    }
     Views: {
       [_ in never]: never
     }
