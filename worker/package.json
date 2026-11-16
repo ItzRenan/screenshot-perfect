@@ -8,7 +8,8 @@
     "parse:das": "node src/parse-das.js"
   },
   "dependencies": {
-    "pdfjs-dist": "^4.10.38"
+    "pdfjs-dist": "^4.10.38",
+    "puppeteer-real-browser": "^1.3.0"
   },
   "engines": {
     "node": ">=20"
