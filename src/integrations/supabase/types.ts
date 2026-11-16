@@ -49,6 +49,7 @@ export type Database = {
           user_id?: string | null
           valor?: number | null
           vencimento?: string | null
+          vencimento_original?: string | null
         }
         Relationships: [
           {
