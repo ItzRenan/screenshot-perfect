@@ -25,6 +25,7 @@ export type Database = {
           user_id: string | null
           valor: number | null
           vencimento: string | null
+          vencimento_original: string | null
         }
         Insert: {
           arquivo_path?: string | null
@@ -36,6 +37,7 @@ export type Database = {
           user_id?: string | null
           valor?: number | null
           vencimento?: string | null
+          vencimento_original?: string | null
         }
         Update: {
           arquivo_path?: string | null
