@@ -16,7 +16,7 @@ Esta pasta contém um teste isolado. Não substitui o worker atual e não altera
 2. Defina o diretório raiz como `cloudflare-worker`.
 3. Use `npm install` como comando de instalação e `npx wrangler deploy` como comando de deploy, se o fluxo de Builds solicitar esses campos.
 4. O binding `BROWSER` é declarado em `wrangler.jsonc`.
-5. Cadastre o secret `API_TOKEN), com pelo menos 32 caracteres aleatórios. Não coloque o token no GitHub nem no frontend.
+5. Cadastre o secret `API_TOKEN`, com pelo menos 32 caracteres aleatórios. Não coloque o token no GitHub nem no frontend.
 6. Mantenha o plano Workers Free; não habilite cobrança ou upgrade para este teste.
 
 ## Teste
