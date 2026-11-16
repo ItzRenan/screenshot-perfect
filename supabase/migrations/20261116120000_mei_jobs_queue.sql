@@ -135,8 +135,8 @@ begin
 
   if not found then raise exception 'Cliente não pertence ao usuário da solicitação.'; end if;
 
-  v_cnpj := regexp_replace(coalesce(v_cliente.cnpj, ''), '\D', '', 'g');
-  if length(v_cnpj) <> 14 or regexp_replace(coalesce(p_pdf_cnpj, ''), '\D', '', 'g') <> v_cnpj then
+  v_cnpj := regexp_replace(coalesce(v_cliente.cnpj, ''), '[^0-9]', '', 'g');
+  if length(v_cnpj) <> 14 or regexp_replace(coalesce(p_pdf_cnpj, ''), '[^0-9]', '', 'g') <> v_cnpj then
     raise exception 'CNPJ do PDF não corresponde ao cliente selecionado.';
   end if;
   if p_pdf_competencia is distinct from v_job.competencia then
