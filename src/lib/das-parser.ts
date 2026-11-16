@@ -80,6 +80,6 @@ export function interpretarTextoDAS(textoBruto: string): DadosDASExtraidos {
   ]);
   const valor = valorBR(valorRaw);
 
-  return { cnpj, competencia, valor, vencimento, vencimentoOriginal: vencimentoOriginal ?? vencimento, textoEncontrado: texto.length > 30 };
+  return { cnpj, competencia, valor, vencimento, vencimentoOriginal, textoEncontrado: texto.length > 30 };
 }
 
