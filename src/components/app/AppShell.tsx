@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, History, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { FileText, History, LayoutDashboard, LogOut, Settings, Users, Files } from "lucide-react";
 import { configuracoesQuery } from "@/lib/queries";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ const NAV = [
   { to: "/painel", label: "Dashboard", icon: LayoutDashboard },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/boletos", label: "Boletos", icon: FileText },
+  { to: "/importacoes", label: "Importações", icon: Files },
   { to: "/historico", label: "Histórico", icon: History },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
 ] as const;
@@ -87,7 +88,7 @@ export function AppShell({ email }: { email: string | undefined }) {
       </main>
 
       {/* Navegação inferior (celular) */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t border-border bg-sidebar/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
         {NAV.map(({ to, label, icon: Icon }) => (
           <Link
             key={to}
