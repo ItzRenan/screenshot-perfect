@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { normalizarCnpj, normalizarCompetencia } from "./pgmei-flow.js";
 import { validarCorrespondenciaDas } from "./das-parser.js";
+import { parseDasBuffer } from "./parse-das.js";
 
 const BUCKET = "boletos-mei";
 
@@ -129,4 +130,9 @@ export async function gerarUrlDownload(supabase, storagePath, expiresIn = 60) {
     .createSignedUrl(storagePath, expiresIn);
   if (error) throw new Error("Não foi possível gerar URL temporária do PDF: " + error.message);
   return data.signedUrl;
+}
+
+export async function concluirJobComPdf({ supabase, job, cliente, pdfBuffer }) {
+  const dadosDas = await parseDasBuffer(pdfBuffer);
+  return concluirJobComDas({ supabase, job, cliente, pdfBuffer, dadosDas });
 }
