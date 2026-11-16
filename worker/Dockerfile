@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-COPY package.json package-lock.json* ./
+COPY package.json ./
 RUN npm install --omit=dev
 COPY src ./src
 COPY start.sh ./start.sh
