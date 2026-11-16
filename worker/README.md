@@ -10,7 +10,7 @@ Crie um arquivo `.env` local (não versionar) com:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `API_TOKEN` (segredo aleatório com pelo menos 32 caracteres)
 
-Antes, peça ao Lovable para implementar o schema descrito em `worker/SUPABASE_SETUP.md`. Este projeto é conectado ao Lovable; não aplique migrations manuais desta branch.
+Antes, aplique pelo fluxo gerenciado do Lovable a migration `supabase/migrations/20261116120000_mei_jobs_queue.sql`, seguindo `worker/SUPABASE_SETUP.md`. Confirme as tabelas e políticas existentes antes de aplicar.
 
 Na pasta `worker`, execute:
 
@@ -50,7 +50,7 @@ Todas as rotas `/api` exigem `Authorization: Bearer API_TOKEN`. A autenticação
 - A sessão visual é efêmera; reinício do container interrompe o browser. A fila reencaminha leases abandonados após 15 minutos.
 - Não há bypass de CAPTCHA ou mecanismo anti-automação; intervenção humana é necessária quando exigida pelo PGMEI.
 - Seletores e emissão precisam de teste real controlado no PGMEI.
-- Ainda não está integrado à interface do MEI Fácil, nem deployado. Não aplique a migration nem configure secrets de produção sem revisão e autorização.
+- A interface de solicitação e acompanhamento já está conectada à Edge Function na branch `feat/mei-facil-cloud-worker`, mas ainda não foi publicada. O teste real de navegação/emissão continua pendente. Não aplique a migration nem configure secrets de produção sem revisão e autorização.
 - Não há envio por WhatsApp.
 
 ## Ponte autenticada com o aplicativo
