@@ -120,7 +120,7 @@ begin
     raise exception 'Caminho do PDF não informado';
   end if;
 
-  select regexp_replace(c.cnpj, '\\D', '', 'g')
+  select regexp_replace(c.cnpj, '[^0-9]', '', 'g')
     into v_cliente_cnpj
   from public.clientes c
   where c.id = v_job.cliente_id and c.user_id = v_job.user_id;
@@ -129,7 +129,7 @@ begin
     raise exception 'Cliente não pertence ao usuário do job';
   end if;
 
-  if regexp_replace(coalesce(p_pdf_cnpj, ''), '\\D', '', 'g') <> v_cliente_cnpj then
+  if regexp_replace(coalesce(p_pdf_cnpj, ''), '[^0-9]', '', 'g') <> v_cliente_cnpj then
     raise exception 'CNPJ do PDF não corresponde ao cliente';
   end if;
 
