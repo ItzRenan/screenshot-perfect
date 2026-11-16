@@ -52,3 +52,14 @@ Todas as rotas `/api` exigem `Authorization: Bearer API_TOKEN`. A autenticação
 - Seletores e emissão precisam de teste real controlado no PGMEI.
 - Ainda não está integrado à interface do MEI Fácil, nem deployado. Não aplique a migration nem configure secrets de produção sem revisão e autorização.
 - Não há envio por WhatsApp.
+
+## Ponte autenticada com o aplicativo
+
+A Edge Function `supabase/functions/mei-jobs/index.ts` recebe chamadas autenticadas pela sessão Supabase do usuário, verifica a titularidade do cliente/job usando o JWT do próprio usuário e encaminha as operações ao worker. O token da API do worker nunca deve ser enviado ao navegador.
+
+Configure nos Secrets do projeto Supabase/Lovable:
+- `MEI_WORKER_URL`: URL interna/HTTPS do worker, sem barra final.
+- `MEI_WORKER_API_TOKEN`: o mesmo token configurado no container.
+- `SUPABASE_ANON_KEY` ou `SUPABASE_PUBLISHABLE_KEY`: chave pública do projeto, se não estiver disponível no ambiente padrão da Edge Function.
+
+A Edge Function também depende da tabela `mei_jobs` descrita em `worker/SUPABASE_SETUP.md`. Até o schema ser criado pelo Lovable e a função ser publicada/configurada, a integração não estará operacional.
