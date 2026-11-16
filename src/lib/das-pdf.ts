@@ -1,6 +1,6 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { isValidCNPJ, onlyDigits } from "@/lib/format";
+import { isValidCNPJ } from "@/lib/format";
 
 GlobalWorkerOptions.workerSrc = pdfWorker;
 
