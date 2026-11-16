@@ -1,16 +1,18 @@
 # MEI Fácil — worker em nuvem
 
-Este diretório inicia a camada de processamento de DAS, separada do frontend Lovable.
+Camada isolada para consultar o PGMEI, validar PDFs DAS e preparar o armazenamento no Supabase.
 
-## Etapa entregue
+## Implementado nesta branch
 
-- Leitura de texto de PDFs DAS com PDF.js.
-- Extração de CNPJ, período de apuração, vencimento e valor.
-- Validação obrigatória de que o CNPJ do documento corresponde ao cliente.
-- Valor monetário armazenado em centavos, evitando arredondamentos.
-- Testes automatizados com os dois formatos de DAS identificados nos documentos de exemplo.
+- Parser de PDF DAS com extração de CNPJ, competência, vencimento e valor em centavos.
+- Validação estrita do CNPJ e da competência esperada.
+- Fluxo PGMEI parametrizado: recebe CNPJ e competência `MM/AAAA`; não usa CNPJ fixo nem assume sempre o mês anterior.
+- Identificação do retorno de DAS já paga.
+- Download da resposta PDF e validação da assinatura `%PDF-`.
+- Ponto de parada explícito para validação humana quando o PGMEI mantiver o usuário na tela de identificação.
+- Testes automatizados de parser e validação dos parâmetros.
 
-## Executar localmente
+## Executar testes
 
 Requer Node.js 20 ou superior.
 
@@ -20,8 +22,17 @@ npm test
 npm run parse:das -- caminho/do/arquivo.pdf
 ```
 
-## Próxima integração
+## Integração do navegador
 
-O coletor PGMEI será adaptado para receber CNPJ e competência como parâmetros (em vez de usar um CNPJ fixo e apenas o mês anterior). O processo de backend deverá consultar os clientes autorizados, executar a consulta, validar o PDF com este parser, armazená-lo no bucket privado `boletos-mei` em `<user_id>/<cliente_id>/...` e registrar o boleto no Supabase. Credenciais do Supabase e dados de sessão devem existir somente como variáveis secretas do serviço, nunca neste repositório.
+`src/pgmei-flow.js` exporta `consultarPgmei({ page, cnpj, competencia })`. O chamador deve fornecer uma página Puppeteer autorizada e uma sessão de navegador que possa ser operada. A função não tenta resolver CAPTCHA, não simula identidade nem contorna desafios: se a Receita exigir validação, a execução informa `MANUAL_VERIFICATION_REQUIRED` para que uma pessoa conclua a etapa na sessão.
 
-**Importante:** o parser não consulta o PGMEI nem envia mensagens. Ele é uma etapa isolada de validação e ainda não está publicado como serviço ativo.
+O repositório original `pgmei-solver` foi útil como referência de seletores e sequência de navegação, mas o script original tinha CNPJ fixo por variável de ambiente, competência automática do mês anterior e fluxo de navegador acoplado a um único processo. A nova camada separa os parâmetros e a navegação para permitir integração multi-cliente com controle de acesso.
+
+## Ainda não publicado / não conectado
+
+- Não existe endpoint público nem serviço em nuvem ativo nesta branch.
+- Não há conexão com Supabase, fila persistente ou gravação automática no bucket `boletos-mei`.
+- Não há interface remota para uma pessoa concluir o desafio do PGMEI na sessão em nuvem.
+- O envio pelo WhatsApp continua dependendo da confirmação no painel MEI Fácil.
+
+Credenciais devem ser configuradas como secrets no ambiente de execução; nunca devem ser commitadas no GitHub. Não use um CNPJ de fallback. Antes de gravar um boleto, valide sempre CNPJ e competência contra o cliente e o job que originou a consulta.
