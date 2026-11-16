@@ -31,7 +31,9 @@ function dataISO(value: string | null): string | null {
   if (!m) return null;
   const [, dia, mes, ano] = m;
   const d = Number(dia), mo = Number(mes), y = Number(ano);
-  if (d < 1 || d > 31 || mo < 1 || mo > 12 || y < 2000 || y > 2099) return null;
+  if (y < 2000 || y > 2099) return null;
+  const data = new Date(Date.UTC(y, mo - 1, d));
+  if (data.getUTCFullYear() !== y || data.getUTCMonth() !== mo - 1 || data.getUTCDate() !== d) return null;
   return `${ano}-${mes}-${dia}`;
 }
 
