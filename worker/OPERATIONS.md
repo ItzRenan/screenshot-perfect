@@ -23,7 +23,7 @@ Use chave SSH individual, autenticação forte e permissões mínimas. Não comp
 ## Restrições operacionais
 
 - A API do worker deve ficar atrás de HTTPS/rede privada e nunca ser exposta sem proteção.
-- A porta 3000 também fica vinculada ao loopback do host no Compose. A Edge Function hospedada no Supabase não alcançará diretamente esse endereço: será necessário configurar conectividade privada ou um gateway HTTPS autenticado, sem expor o VNC.
+- A API na porta 3000 fica apenas na rede interna do Docker e é acessada pela Edge Function via Caddy/HTTPS com bearer token. A porta 6080 do noVNC permanece vinculada ao loopback do host e nunca passa pelo Caddy.
 - `API_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY` e secrets do Supabase ficam exclusivamente no servidor/gerenciador de secrets.
 - Não coloque tokens em parâmetros de URL, frontend, logs ou screenshots.
 - A sessão do Chromium é temporária. Se o container reiniciar, a sessão visual é encerrada; a fila deve recuperar o job conforme a política de lease.
