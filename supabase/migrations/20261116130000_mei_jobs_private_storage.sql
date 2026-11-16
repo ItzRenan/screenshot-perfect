@@ -52,10 +52,24 @@ create policy "Usuario solicita seus jobs MEI"
 -- Workers claim one pending task atomically; concurrent workers cannot claim the same row.
 create or replace function public.claim_mei_job()
 returns setof public.mei_jobs
-language sql
+language plpgsql
 security definer
 set search_path = public
-as $$
+as $
+begin
+  -- Recover abandoned leases after a worker crash; exhausted jobs become terminal.
+  update public.mei_jobs
+  set status = case when attempts < max_attempts then 'pending' else 'failed' end,
+      locked_at = null,
+      error_message = case
+        when attempts < max_attempts then 'Worker anterior não concluiu o processamento; job reencaminhado.'
+        else 'Limite de tentativas atingido após interrupção do worker.'
+      end,
+      updated_at = now()
+  where status = 'processing'
+    and locked_at < now() - interval '15 minutes';
+
+  return query
   with next_job as (
     select id
     from public.mei_jobs
@@ -74,7 +88,8 @@ as $$
   from next_job
   where j.id = next_job.id
   returning j.*;
-$$;
+end;
+$;
 
 revoke all on function public.claim_mei_job() from public, anon, authenticated;
 grant execute on function public.claim_mei_job() to service_role;
@@ -133,7 +148,7 @@ begin
     raise exception 'CNPJ do PDF não corresponde ao cliente';
   end if;
 
-  if p_pdf_competencia <> v_job.competencia then
+  if p_pdf_competencia is null or p_pdf_competencia <> v_job.competencia then
     raise exception 'Competência do PDF não corresponde ao job';
   end if;
 
