@@ -122,26 +122,41 @@ export type Database = {
         Row: {
           boleto_id: string | null
           created_at: string | null
+          entregue_em: string | null
+          erro: string | null
           enviado_em: string | null
           id: string
+          lido_em: string | null
+          tentativas: number
           status: string | null
           user_id: string | null
+          whatsapp_message_id: string | null
         }
         Insert: {
           boleto_id?: string | null
           created_at?: string | null
+          entregue_em?: string | null
+          erro?: string | null
           enviado_em?: string | null
           id?: string
+          lido_em?: string | null
+          tentativas?: number
           status?: string | null
           user_id?: string | null
+          whatsapp_message_id?: string | null
         }
         Update: {
           boleto_id?: string | null
           created_at?: string | null
+          entregue_em?: string | null
+          erro?: string | null
           enviado_em?: string | null
           id?: string
+          lido_em?: string | null
+          tentativas?: number
           status?: string | null
           user_id?: string | null
+          whatsapp_message_id?: string | null
         }
         Relationships: [
           {
@@ -154,6 +169,22 @@ export type Database = {
         ]
       }
     }
+      mei_import_lotes: {
+        Row: { id: string; user_id: string; nome: string | null; total_itens: number; status: string; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; nome?: string | null; total_itens?: number; status?: string; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; nome?: string | null; total_itens?: number; status?: string; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      mei_import_itens: {
+        Row: { id: string; lote_id: string; user_id: string; arquivo_path: string; status: string; cliente_id: string | null; boleto_id: string | null; extraido_json: Json | null; erro: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; lote_id: string; user_id: string; arquivo_path: string; status?: string; cliente_id?: string | null; boleto_id?: string | null; extraido_json?: Json | null; erro?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; lote_id?: string; user_id?: string; arquivo_path?: string; status?: string; cliente_id?: string | null; boleto_id?: string | null; extraido_json?: Json | null; erro?: string | null; created_at?: string; updated_at?: string }
+        Relationships: [
+          { foreignKeyName: "mei_import_itens_lote_id_fkey"; columns: ["lote_id"]; isOneToOne: false; referencedRelation: "mei_import_lotes"; referencedColumns: ["id"] },
+          { foreignKeyName: "mei_import_itens_cliente_id_fkey"; columns: ["cliente_id"]; isOneToOne: false; referencedRelation: "clientes"; referencedColumns: ["id"] },
+          { foreignKeyName: "mei_import_itens_boleto_id_fkey"; columns: ["boleto_id"]; isOneToOne: false; referencedRelation: "boletos"; referencedColumns: ["id"] }
+        ]
+      }
     Views: {
       [_ in never]: never
     }
