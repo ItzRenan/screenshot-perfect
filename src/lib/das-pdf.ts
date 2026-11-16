@@ -49,10 +49,6 @@ function extrair(textoBruto: string): DadosDASExtraidos {
     /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|per[ií]odo apura[cç][aã]o|PA)\\s*[:\\-]?\\s*(\\d{2}\\/\\d{4})/i,
     /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|PA)[^0-9]{0,30}(\\d{2}\\/\\d{4})/i,
   ]);
-  const competenciaMesExtenso = capturar(texto, [
-    /per[ií]odo de apura[cç][aã]o\\s+([a-zçãé]+)\\s*\\/\\s*(20\\d{2})/i,
-    /compet[eê]ncia\\s+([a-zçãé]+)\\s*\\/\\s*(20\\d{2})/i,
-  ]);
   const meses: Record<string, string> = {
     janeiro: "01", fevereiro: "02", março: "03", marco: "03", abril: "04",
     maio: "05", junho: "06", julho: "07", agosto: "08", setembro: "09",
@@ -69,8 +65,9 @@ function extrair(textoBruto: string): DadosDASExtraidos {
     : null;
 
   const vencimentoRaw = capturar(texto, [
-    /(?:data de vencimento|vencimento)\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i,
-    /(?:data de vencimento|vencimento)[^0-9]{0,25}(\d{2}\.\d{2}\.\d{4})/i,
+    /pagar este documento até\s*(\d{2}\/\d{2}\/\d{4})/i,
+    /(?:data de vencimento|vencimento)[^0-9]{0,100}(\d{2}\/\d{2}\/\d{4})/i,
+    /(?:data de vencimento|vencimento)[^0-9]{0,100}(\d{2}\.\d{2}\.\d{4})/i,
   ]);
   const vencimento = dataISO(vencimentoRaw);
 
