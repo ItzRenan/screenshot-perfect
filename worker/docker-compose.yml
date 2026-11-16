@@ -9,8 +9,9 @@ services:
       CHROMIUM_PATH: /usr/bin/chromium
       PROFILE_DIR: /app/chrome-profile
       POLL_MS: 3000
+    expose:
+      - "3000"
     ports:
-      - "127.0.0.1:3000:3000"
       - "127.0.0.1:6080:6080"
     volumes:
       - mei-chrome-profile:/app/chrome-profile
@@ -18,5 +19,24 @@ services:
     security_opt:
       - no-new-privileges:true
 
+  mei-worker-gateway:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - mei-facil-worker
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   mei-chrome-profile:
+  caddy-data:
+  caddy-config:
