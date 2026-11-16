@@ -1,0 +1,16 @@
+{
+  "name": "mei-facil-cloudflare-browser-poc",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "^2.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
