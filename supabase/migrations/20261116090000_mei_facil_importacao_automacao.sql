@@ -153,13 +153,40 @@ begin
   end if;
 
   select * into v_cliente from public.clientes
-    where id = p_cliente_id and user_id = auth.uid();
+    where id = p_cliente_id and user_id = auth.uid() for update;
   if not found then raise exception 'Cliente não encontrado'; end if;
   if regexp_replace(coalesce(v_cliente.cnpj,''), '\D', '', 'g') <>
      regexp_replace(coalesce(p_cnpj,''), '\D', '', 'g') then
     raise exception 'CNPJ não corresponde ao cliente selecionado';
   end if;
-  if p_competencia !~ '^(0[1-9]|1[0-2])/[0-9]{4}$' or p_valor <= 0 or p_vencimento is null then
+  if p_competencia is null or p_competencia !~ '^(0[1-9]|1[0-2])/[0-9]{4}
+    raise exception 'Dados do DAS inválidos';
+  end if;
+  if exists (select 1 from public.boletos b where b.user_id = auth.uid()
+      and b.cliente_id = p_cliente_id and b.competencia = p_competencia) then
+    raise exception 'Já existe boleto para este cliente e competência';
+  end if;
+
+  insert into public.boletos(user_id, cliente_id, competencia, valor, vencimento, arquivo_path, status)
+  values (auth.uid(), p_cliente_id, p_competencia, p_valor, p_vencimento, v_item.arquivo_path, 'pendente')
+  returning id into v_boleto_id;
+
+  insert into public.envios(user_id, boleto_id, status)
+  values (auth.uid(), v_boleto_id, 'aprovado');
+
+  update public.mei_import_itens
+    set status = 'importado', cliente_id = p_cliente_id, boleto_id = v_boleto_id, erro = null
+    where id = p_item_id;
+
+  return v_boleto_id;
+end;
+$$;
+
+revoke all on function public.approve_mei_import_item(uuid, uuid, text, text, numeric, date) from public, anon;
+grant execute on function public.approve_mei_import_item(uuid, uuid, text, text, numeric, date) to authenticated;
+
+     or p_valor is null or p_valor <= 0 or p_vencimento is null
+     or length(regexp_replace(coalesce(p_cnpj,''), '\\D', '', 'g')) <> 14 then
     raise exception 'Dados do DAS inválidos';
   end if;
   if exists (select 1 from public.boletos b where b.user_id = auth.uid()
