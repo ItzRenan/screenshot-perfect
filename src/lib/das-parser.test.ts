@@ -9,8 +9,11 @@ describe("interpretarTextoDAS", () => {
       Período de Apuração Data de Vencimento
       DANILO EWERTON PEREIRA DE FRANCA 03950894330
       dezembro/2021
-      Número do Documento 20/01/2022
-      Pagar este documento até 16/11/2026
+      Número do Documento
+      20/01/2022
+      Pagar este documento até
+      07.08.26320.5582635-3
+      16/11/2026
       Valor Total do Documento 55,78
     `;
     expect(interpretarTextoDAS(texto)).toMatchObject({
