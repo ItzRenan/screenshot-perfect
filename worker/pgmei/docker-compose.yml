@@ -1,0 +1,25 @@
+services:
+  pgmei-worker:
+    build: .
+    container_name: mei-facil-pgmei
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      CHROMIUM_PATH: /usr/bin/chromium
+      RESULTS_DIR: /app/results
+      PROFILE_DIR: /app/chrome-profile
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - pgmei-results:/app/results
+      - pgmei-profile:/app/chrome-profile
+    shm_size: "1gb"
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  pgmei-results:
+  pgmei-profile:

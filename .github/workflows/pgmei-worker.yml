@@ -1,0 +1,32 @@
+name: Validate PGMEI worker
+
+on:
+  pull_request:
+    paths:
+      - "worker/pgmei/**"
+      - ".github/workflows/pgmei-worker.yml"
+  push:
+    branches: ["feat/pgmei-session-worker"]
+    paths:
+      - "worker/pgmei/**"
+      - ".github/workflows/pgmei-worker.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: worker/pgmei
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Test helpers
+        run: npm test
+      - name: Check JavaScript syntax
+        run: node --check server.js
+      - name: Build container
+        run: docker build -t mei-facil-pgmei-worker .
