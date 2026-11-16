@@ -64,8 +64,8 @@ export function interpretarTextoDAS(textoBruto: string): DadosDASExtraidos {
     : null;
 
   const vencimentoOriginalRaw = capturar(texto, [
-    /data de vencimento[\\s\\S]{0,160}?(\d{2}\/\d{2}\/\d{4})/i,
-    /data de vencimento[\\s\\S]{0,160}?(\d{2}\.\d{2}\.\d{4})/i,
+    /data de vencimento[\s\S]{0,160}?(\d{2}\/\d{2}\/\d{4})/i,
+    /data de vencimento[\s\S]{0,160}?(\d{2}\.\d{2}\.\d{4})/i,
   ]);
   const vencimentoOriginal = dataISO(vencimentoOriginalRaw);
   const dataLimiteRaw = capturar(texto, [
