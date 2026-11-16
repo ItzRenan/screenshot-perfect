@@ -10,7 +10,7 @@ Ask Lovable to implement the following additions in the existing Supabase projec
 4. A `complete_mei_job(...)` function that locks the job, verifies it is processing, verifies the PDF CNPJ and competence match the job and client, creates the matching row in the existing `public.boletos` table, and marks the job completed in the same transaction. Restrict execution to service role.
 5. A `fail_mei_job(...)` function that records a bounded error message and either requeues or marks failed according to the retry limit. Restrict execution to service role.
 6. A partial unique constraint preventing duplicate active/completed/paid jobs for the same user, client, and competence, while allowing a new request after a failed job.
-7. A private Storage bucket named `boletos-mei`, PDF-only, max 10 MB. Authenticated read policy must restrict object paths to the current user's UUID folder. Worker uploads use service role.
+7. Reuse the existing private Storage bucket `boletos-mei` and its established policies. Verify that authenticated reads are restricted to `<auth.uid()>/...`; do not recreate the bucket or weaken/replace its current policies. Worker uploads use service role. Apply a PDF-only size limit only if it is compatible with the existing bucket configuration.
 8. Preserve the existing boleto storage path convention and existing RLS rules. Do not make the bucket public and do not expose service-role credentials to browser code.
 
 After Lovable implements this, review the actual generated schema against the worker's expected columns and function parameter names before applying it to the connected project.
