@@ -10,7 +10,7 @@ Crie um arquivo `.env` local (não versionar) com:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `API_TOKEN` (segredo aleatório com pelo menos 32 caracteres)
 
-Aplique antes a migration `supabase/migrations/20261116130000_mei_jobs_private_storage.sql`.
+Antes, peça ao Lovable para implementar o schema descrito em `worker/SUPABASE_SETUP.md`. Este projeto é conectado ao Lovable; não aplique migrations manuais desta branch.
 
 Na pasta `worker`, execute:
 
