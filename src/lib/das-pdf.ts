@@ -57,7 +57,7 @@ function extrair(textoBruto: string): DadosDASExtraidos {
   const competenciaExtenso = texto.match(/\b(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro)\s*\/\s*(20\d{2})/i);
   const mesExtenso = competenciaExtenso?.[1]?.toLocaleLowerCase("pt-BR");
   const competenciaPorExtenso = mesExtenso && meses[mesExtenso]
-    ? \`\${meses[mesExtenso]}/\${competenciaExtenso[2]}\`
+    ? meses[mesExtenso] + "/" + competenciaExtenso[2]
     : null;
   const competenciaCandidata = competenciaRaw ?? competenciaPorExtenso;
   const competencia = competenciaCandidata && /^(0[1-9]|1[0-2])\/20\d{2}$/.test(competenciaCandidata)
