@@ -14,7 +14,6 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 
-type MeiAction = "create" | "status" | "file";
 type MeiJob = {
   id: string;
   status: "pending" | "processing" | "completed" | "paid" | "failed";
