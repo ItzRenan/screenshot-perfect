@@ -46,10 +46,27 @@ function extrair(textoBruto: string): DadosDASExtraidos {
   const cnpj = cnpjCandidates.find((v) => isValidCNPJ(v)) ?? null;
 
   const competenciaRaw = capturar(texto, [
-    /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|per[ií]odo apura[cç][aã]o|PA)\s*[:\-]?\s*(\d{2}\/\d{4})/i,
-    /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|PA)[^0-9]{0,30}(\d{2}\/\d{4})/i,
+    /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|per[ií]odo apura[cç][aã]o|PA)\\s*[:\\-]?\\s*(\\d{2}\\/\\d{4})/i,
+    /(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia|PA)[^0-9]{0,30}(\\d{2}\\/\\d{4})/i,
   ]);
-  const competencia = competenciaRaw && /^(0[1-9]|1[0-2])\/20\d{2}$/.test(competenciaRaw) ? competenciaRaw : null;
+  const competenciaMesExtenso = capturar(texto, [
+    /per[ií]odo de apura[cç][aã]o\\s+([a-zçãé]+)\\s*\\/\\s*(20\\d{2})/i,
+    /compet[eê]ncia\\s+([a-zçãé]+)\\s*\\/\\s*(20\\d{2})/i,
+  ]);
+  const meses: Record<string, string> = {
+    janeiro: "01", fevereiro: "02", março: "03", marco: "03", abril: "04",
+    maio: "05", junho: "06", julho: "07", agosto: "08", setembro: "09",
+    outubro: "10", novembro: "11", dezembro: "12",
+  };
+  const competenciaExtensoMatch = texto.match(/(?:per[ií]odo de apura[cç][aã]o|compet[eê]ncia)\\s+([a-zçãé]+)\\s*\\/\\s*(20\\d{2})/i);
+  const mesExtenso = competenciaExtensoMatch?.[1]?.toLocaleLowerCase("pt-BR");
+  const competenciaPorExtenso = mesExtenso && meses[mesExtenso]
+    ? `${meses[mesExtenso]}/${competenciaExtensoMatch[2]}`
+    : null;
+  const competenciaCandidata = competenciaRaw ?? competenciaPorExtenso;
+  const competencia = competenciaCandidata && /^(0[1-9]|1[0-2])\\/20\\d{2}$/.test(competenciaCandidata)
+    ? competenciaCandidata
+    : null;
 
   const vencimentoRaw = capturar(texto, [
     /(?:data de vencimento|vencimento)\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i,
