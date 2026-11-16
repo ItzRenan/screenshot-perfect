@@ -258,6 +258,11 @@ export function MeiEmissionDialog({ open, onOpenChange }: { open: boolean; onOpe
                 </Button>
               )}
               {concluido && <Button onClick={baixarPdf}><Download className="size-4" /> Abrir PDF</Button>}
+              {(concluido || pago || falhou) && (
+                <Button variant="outline" onClick={() => { setJobId(null); solicitar.reset(); }}>
+                  <FilePlus2 className="size-4" /> Nova emissão
+                </Button>
+              )}
               {!concluido && !pago && !falhou && (
                 <Button variant="outline" onClick={() => consulta.refetch()} disabled={consulta.isFetching}>
                   {consulta.isFetching ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
