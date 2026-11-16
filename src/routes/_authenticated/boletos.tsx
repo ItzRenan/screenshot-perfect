@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/app/PageHeader";
 import { StatusBadge } from "@/components/app/StatusBadge";
 import { BoletoImportDialog } from "@/components/app/BoletoImportDialog";
+import { MeiEmissionDialog } from "@/components/app/MeiEmissionDialog";
 import { WhatsAppDialog } from "@/components/app/WhatsAppDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +70,7 @@ function BoletosPage() {
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<StatusBoleto | "todos">("todos");
   const [importar, setImportar] = useState(false);
+  const [emitirMei, setEmitirMei] = useState(false);
   const [enviando, setEnviando] = useState<BoletoComCliente | null>(null);
   const [excluindo, setExcluindo] = useState<BoletoComCliente | null>(null);
 
@@ -132,10 +134,16 @@ function BoletosPage() {
         title="Boletos DAS"
         description="Importe os PDFs, confira os dados e envie pelo WhatsApp."
         action={
-          <Button variant="hero" onClick={() => setImportar(true)}>
-            <FileUp className="size-4" />
-            Importar boleto
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setEmitirMei(true)}>
+              <FileText className="size-4" />
+              Emitir pelo PGMEI
+            </Button>
+            <Button variant="hero" onClick={() => setImportar(true)}>
+              <FileUp className="size-4" />
+              Importar boleto
+            </Button>
+          </div>
         }
       />
 
@@ -248,6 +256,7 @@ function BoletosPage() {
       )}
 
       <BoletoImportDialog open={importar} onOpenChange={setImportar} userId={user.id} />
+      <MeiEmissionDialog open={emitirMei} onOpenChange={setEmitirMei} />
       <WhatsAppDialog boleto={enviando} onOpenChange={(o) => !o && setEnviando(null)} />
 
       <AlertDialog open={!!excluindo} onOpenChange={(o) => !o && setExcluindo(null)}>
