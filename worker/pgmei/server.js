@@ -3,6 +3,7 @@ import puppeteer from "puppeteer";
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { formatCNPJ, isAuthorizedToken, isCompetenciaValida } from "./utils.js";
 
 const app = express();
 app.use(express.json({ limit: "32kb" }));
@@ -121,7 +122,7 @@ app.post("/api/jobs/:id/continue", auth, requireJob, async (req, res) => {
 
   try {
     update(job, "checking_session", "Verificando se a etapa de identificação foi concluída.");
-    await job.page.waitForTimeout(1500);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     if (job.page.url().includes("/Identificacao")) {
       update(job, "awaiting_user", "O PGMEI ainda está na identificação. Conclua a etapa manualmente na janela do navegador e tente novamente.");
       return res.status(409).json({ error: "A etapa manual ainda não foi concluída.", job: serialize(job) });
@@ -164,7 +165,7 @@ app.post("/api/jobs/:id/continue", auth, requireJob, async (req, res) => {
     });
     if (!botaoGerar) throw new Error("Botão de apuração não encontrado.");
 
-    await job.page.waitForTimeout(3500);
+    await new Promise((resolve) => setTimeout(resolve, 3500));
     const bodyText = await job.page.evaluate(() => document.body.innerText);
     if (/já existe pagamento|já foi pago|não será gerado DAS/i.test(bodyText)) {
       job.paidMessage = bodyText.match(/.{0,100}(?:já existe pagamento|já foi pago|não será gerado DAS).{0,180}/i)?.[0] || "O PGMEI informou que já existe pagamento para a competência.";
