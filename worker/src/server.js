@@ -2,6 +2,7 @@ import express from "express";
 import puppeteer from "puppeteer";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { timingSafeEqual } from "node:crypto";
 import {
   createWorkerSupabaseClient,
   enfileirarJob,
@@ -32,26 +33,15 @@ if (!API_TOKEN || API_TOKEN.length < 32) {
 }
 
 function auth(req, res, next) {
-  const supplied = req.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
-  if (supplied.length !== API_TOKEN.length ||
-      !cryptoTimingSafeEqual(supplied, API_TOKEN)) {
+  const supplied = req.get("authorization")?.replace(/^Bearer\\s+/i, "") || "";
+  const providedBuffer = Buffer.from(supplied);
+  const expectedBuffer = Buffer.from(API_TOKEN);
+  if (providedBuffer.length !== expectedBuffer.length ||
+      !timingSafeEqual(providedBuffer, expectedBuffer)) {
     return res.status(401).json({ error: "Não autorizado." });
   }
   next();
 }
-
-function cryptoTimingSafeEqual(a, b) {
-  // Compare fixed-length token buffers without an early character mismatch return.
-  return Buffer.from(a).length === Buffer.from(b).length &&
-    requireTimingSafeEqual(Buffer.from(a), Buffer.from(b));
-}
-
-function requireTimingSafeEqual(a, b) {
-  // node:crypto is imported lazily to keep the worker's top-level dependencies explicit.
-  return timingSafeEqual(a, b);
-}
-
-import { timingSafeEqual } from "node:crypto";
 
 async function updateStage(jobId, stage, extra = {}) {
   const { error } = await supabase.from("mei_jobs")
@@ -231,6 +221,22 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   process.stdout.write("MEI Fácil worker API listening on port " + PORT + "\n");
 });
 
+const leaseTimer = setInterval(async () => {
+  if (sessions.size === 0 || stopping) return;
+  const now = new Date().toISOString();
+  const renewals = [...sessions.keys()].map((jobId) =>
+    supabase.from("mei_jobs")
+      .update({ locked_at: now, updated_at: now })
+      .eq("id", jobId)
+      .eq("status", "processing")
+  );
+  const results = await Promise.allSettled(renewals);
+  for (const result of results) {
+    if (result.status === "rejected" || result.value?.error) {
+      process.stderr.write("Aviso: não foi possível renovar o lease de um job PGMEI.\\n");
+    }
+  }
+}, 60000);
 const pollTimer = setInterval(() => { void pollQueue(); }, POLL_MS);
 void pollQueue();
 
@@ -238,6 +244,7 @@ async function shutdown() {
   if (stopping) return;
   stopping = true;
   clearInterval(pollTimer);
+  clearInterval(leaseTimer);
   server.close();
   await Promise.all([...sessions.keys()].map(closeSession));
   process.exit(0);
