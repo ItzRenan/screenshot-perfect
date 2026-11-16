@@ -71,7 +71,7 @@ Deno.serve(async (request) => {
     const user = authData.user;
     if (authError || !user) return json({ error: "Sessão inválida ou expirada." }, 401);
 
-    const body = await request.json().catch(() => null);
+    const body = await request.json().catch(() => null) as Record<string, unknown> | null;
     if (!body || typeof body !== "object" || typeof body.action !== "string") {
       return json({ error: "Informe uma ação válida." }, 400);
     }
