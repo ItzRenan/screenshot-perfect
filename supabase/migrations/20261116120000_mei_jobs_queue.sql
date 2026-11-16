@@ -2,6 +2,9 @@
 -- Apply through the connected Lovable/Supabase project after confirming the
 -- existing private Storage bucket "boletos-mei" is present and unchanged.
 
+create unique index if not exists clientes_id_user_id_mei_fk_idx
+  on public.clientes (id, user_id);
+
 create table if not exists public.mei_jobs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
