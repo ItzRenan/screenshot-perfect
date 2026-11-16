@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle2, Clock3, Download, FilePlus2, Loader2, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, Clock3, Download, FilePlus2, Loader2, Play, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { clientesQuery, type Cliente } from "@/lib/queries";
@@ -88,6 +88,18 @@ export function MeiEmissionDialog({ open, onOpenChange }: { open: boolean; onOpe
       queryClient.invalidateQueries({ queryKey: ["mei-jobs"] });
     },
     onError: (error: Error) => toast.error(error.message || "Não foi possível solicitar a emissão."),
+  });
+
+  const continuar = useMutation({
+    mutationFn: async () => {
+      if (!jobId) throw new Error("Solicitação não informada.");
+      return chamarMeiJobs({ action: "continue", jobId });
+    },
+    onSuccess: () => {
+      toast.success("Continuação iniciada. O worker está processando o DAS.");
+      void consulta.refetch();
+    },
+    onError: (error: Error) => toast.error(error.message || "Não foi possível continuar a emissão."),
   });
 
   const consulta = useQuery({
@@ -239,6 +251,12 @@ export function MeiEmissionDialog({ open, onOpenChange }: { open: boolean; onOpe
               <p role="alert" className="text-sm text-destructive">{consulta.error.message}</p>
             )}
             <DialogFooter className="flex-col gap-2 sm:flex-row">
+              {aguardandoValidacao && (
+                <Button onClick={() => continuar.mutate()} disabled={continuar.isPending}>
+                  {continuar.isPending ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
+                  Continuar após validação
+                </Button>
+              )}
               {concluido && <Button onClick={baixarPdf}><Download className="size-4" /> Abrir PDF</Button>}
               {!concluido && !pago && !falhou && (
                 <Button variant="outline" onClick={() => consulta.refetch()} disabled={consulta.isFetching}>
