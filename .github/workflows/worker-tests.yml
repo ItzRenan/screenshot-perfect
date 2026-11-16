@@ -22,3 +22,4 @@ jobs:
           cache-dependency-path: worker/package.json
       - run: npm install
       - run: npm test
+      - run: docker build -t mei-facil-worker-ci .
