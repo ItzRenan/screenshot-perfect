@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 COPY package.json ./
 RUN npm install --omit=dev
 COPY server.js start.sh ./
