@@ -1,0 +1,22 @@
+services:
+  mei-facil-worker:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3000
+      CHROMIUM_PATH: /usr/bin/chromium
+      PROFILE_DIR: /app/chrome-profile
+      POLL_MS: 3000
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:6080:6080"
+    volumes:
+      - mei-chrome-profile:/app/chrome-profile
+    shm_size: "1gb"
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mei-chrome-profile:
