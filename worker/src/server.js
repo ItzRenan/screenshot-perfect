@@ -33,7 +33,7 @@ if (!API_TOKEN || API_TOKEN.length < 32) {
 }
 
 function auth(req, res, next) {
-  const supplied = req.get("authorization")?.replace(/^Bearer\\s+/i, "") || "";
+  const supplied = req.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
   const providedBuffer = Buffer.from(supplied);
   const expectedBuffer = Buffer.from(API_TOKEN);
   if (providedBuffer.length !== expectedBuffer.length ||
@@ -233,7 +233,7 @@ const leaseTimer = setInterval(async () => {
   const results = await Promise.allSettled(renewals);
   for (const result of results) {
     if (result.status === "rejected" || result.value?.error) {
-      process.stderr.write("Aviso: não foi possível renovar o lease de um job PGMEI.\\n");
+      process.stderr.write("Aviso: não foi possível renovar o lease de um job PGMEI.\n");
     }
   }
 }, 60000);
