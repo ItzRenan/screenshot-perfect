@@ -25,6 +25,11 @@ const PROFILE_ROOT = process.env.PROFILE_DIR || "/app/chrome-profile";
 const POLL_MS = Number(process.env.POLL_MS || 3000);
 const supabase = createWorkerSupabaseClient();
 const sessions = new Map();
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function validJobId(value) {
+  return typeof value === "string" && UUID_RE.test(value);
+}
 let stopping = false;
 let polling = false;
 
@@ -143,7 +148,6 @@ async function pollQueue() {
 app.get("/health", (_req, res) => res.json({
   ok: true,
   worker: "mei-facil",
-  activeSessions: sessions.size,
   queueConsumer: !stopping,
 }));
 
@@ -158,11 +162,12 @@ app.post("/api/jobs", auth, async (req, res) => {
     return res.status(201).json(job);
   } catch (error) {
     const duplicate = /duplicate key|unique constraint/i.test(error.message);
-    return res.status(duplicate ? 409 : 400).json({ error: error.message });
+    return res.status(duplicate ? 409 : 400).json({ error: duplicate ? "Já existe uma solicitação para esta competência." : "Não foi possível criar a solicitação. Confira os dados e tente novamente." });
   }
 });
 
 app.get("/api/jobs/:id", auth, async (req, res) => {
+  if (!validJobId(req.params.id)) return res.status(400).json({ error: "Identificador de solicitação inválido." });
   const { data, error } = await supabase.from("mei_jobs")
     .select("id, user_id, cliente_id, competencia, status, attempts, error_message, result, storage_path, boleto_id, created_at, updated_at, completed_at")
     .eq("id", req.params.id)
@@ -173,6 +178,7 @@ app.get("/api/jobs/:id", auth, async (req, res) => {
 });
 
 app.post("/api/jobs/:id/continue", auth, async (req, res) => {
+  if (!validJobId(req.params.id)) return res.status(400).json({ error: "Identificador de solicitação inválido." });
   const session = sessions.get(req.params.id);
   if (!session) return res.status(409).json({ error: "Sessão visual não está ativa. O job pode ter sido interrompido ou o worker reiniciado." });
   try {
@@ -198,6 +204,7 @@ app.post("/api/jobs/:id/continue", auth, async (req, res) => {
 });
 
 app.get("/api/jobs/:id/file", auth, async (req, res) => {
+  if (!validJobId(req.params.id)) return res.status(400).json({ error: "Identificador de solicitação inválido." });
   const { data, error } = await supabase.from("mei_jobs")
     .select("storage_path, status")
     .eq("id", req.params.id)
@@ -215,6 +222,7 @@ app.get("/api/jobs/:id/file", auth, async (req, res) => {
 });
 
 app.post("/api/jobs/:id/close", auth, async (req, res) => {
+  if (!validJobId(req.params.id)) return res.status(400).json({ error: "Identificador de solicitação inválido." });
   await closeSession(req.params.id);
   try {
     const status = await falharJob(supabase, req.params.id, "Sessão encerrada pelo operador.", false);
