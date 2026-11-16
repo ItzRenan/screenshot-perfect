@@ -68,11 +68,12 @@ export function interpretarTextoDAS(textoBruto: string): DadosDASExtraidos {
     /data de vencimento[\s\S]{0,160}?(\d{2}\.\d{2}\.\d{4})/i,
   ]);
   const vencimentoOriginal = dataISO(vencimentoOriginalRaw);
-  const dataLimiteRaw = capturar(texto, [
-    /pagar este documento até\s*(\d{2}\/\d{2}\/\d{4})/i,
-    /pagar este documento até\s*(\d{2}\.\d{2}\.\d{4})/i,
-  ]);
-  const dataLimitePagamento = dataISO(dataLimiteRaw) ?? vencimentoOriginal;
+  const indicePagarAte = texto.search(/pagar este documento até/i);
+  const trechoPagarAte = indicePagarAte >= 0 ? texto.slice(indicePagarAte, indicePagarAte + 180) : "";
+  const datasAposPagarAte = [...trechoPagarAte.matchAll(/(\d{2}[/.]\d{2}[/.]\d{4})/g)]
+    .map((match) => dataISO(match[1]))
+    .filter((data): data is string => data !== null);
+  const dataLimitePagamento = datasAposPagarAte[0] ?? vencimentoOriginal;
   const vencimento = dataLimitePagamento;
 
   const valorRaw = capturar(texto, [
