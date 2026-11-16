@@ -189,6 +189,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_mei_import_item: {
+        Args: { p_item_id: string; p_cliente_id: string; p_cnpj: string; p_competencia: string; p_valor: number; p_vencimento: string }
+        Returns: string
+      }
       [_ in never]: never
     }
     Enums: {
