@@ -21,16 +21,13 @@ if (!API_TOKEN || API_TOKEN.length < 32) {
 }
 
 function auth(req, res, next) {
-  const token = req.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token || !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(API_TOKEN))) {
+  const token = req.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  if (!isAuthorizedToken(token, API_TOKEN)) {
     return res.status(401).json({ error: "Não autorizado." });
   }
   next();
 }
 
-function formatCNPJ(digits) {
-  return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-}
 
 function serialize(job) {
   return {
