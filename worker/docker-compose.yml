@@ -22,8 +22,8 @@ services:
   mei-worker-gateway:
     image: caddy:2-alpine
     restart: unless-stopped
-    env_file:
-      - .env
+    environment:
+      WORKER_DOMAIN: ${WORKER_DOMAIN:?Configure WORKER_DOMAIN no arquivo .env}
     depends_on:
       - mei-facil-worker
     ports:
