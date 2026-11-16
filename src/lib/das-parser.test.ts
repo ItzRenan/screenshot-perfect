@@ -51,4 +51,19 @@ describe("interpretarTextoDAS", () => {
       textoEncontrado: false,
     });
   });
+
+  it("não confunde prazo de pagamento com vencimento original quando o campo original é inválido", () => {
+    const texto = `
+      CNPJ 40.439.707/0001-13
+      dezembro/2021
+      Data de Vencimento 31/02/2022
+      Pagar este documento até 16/11/2026
+      Valor Total do Documento 55,78
+    `;
+    expect(interpretarTextoDAS(texto)).toMatchObject({
+      competencia: "12/2021",
+      vencimento: "2026-11-16",
+      vencimentoOriginal: null,
+    });
+  });
 });
