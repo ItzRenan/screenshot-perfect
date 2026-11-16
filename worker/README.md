@@ -62,4 +62,4 @@ Configure nos Secrets do projeto Supabase/Lovable:
 - `MEI_WORKER_API_TOKEN`: o mesmo token configurado no container.
 - `SUPABASE_ANON_KEY` ou `SUPABASE_PUBLISHABLE_KEY`: chave pública do projeto, se não estiver disponível no ambiente padrão da Edge Function.
 
-A Edge Function também depende da tabela `mei_jobs` descrita em `worker/SUPABASE_SETUP.md`. Até o schema ser criado pelo Lovable e a função ser publicada/configurada, a integração não estará operacional.
+A Edge Function também depende da tabela `mei_jobs` descrita em `worker/SUPABASE_SETUP.md`. Configure `WORKER_DOMAIN` com um domínio cujo DNS aponte para a VPS e `MEI_WORKER_URL=https://<WORKER_DOMAIN>` nos secrets da Edge Function. O Caddy emite HTTPS automaticamente e encaminha somente à API; a porta 3000 não é publicada no host e o noVNC continua restrito ao loopback. A API usa `API_TOKEN` e o endpoint `/health` é bloqueado externamente. Até o DNS, os secrets, o schema e a função serem configurados/publicados, a integração não estará operacional.
