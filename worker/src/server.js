@@ -137,7 +137,7 @@ async function handleClaimedJob(job) {
 }
 
 async function pollQueue() {
-  if (polling || stopping) return;
+  if (polling || stopping || sessions.size > 0) return;
   polling = true;
   try {
     // The database claim uses SKIP LOCKED; one browser session is intentionally processed per worker.
@@ -186,9 +186,11 @@ app.post("/api/jobs/:id/continue", auth, async (req, res) => {
   const session = sessions.get(req.params.id);
   if (!session) return res.status(409).json({ error: "Sessão visual não está ativa. O job pode ter sido interrompido ou o worker reiniciado." });
   try {
+    if (session.continuing) return res.status(409).json({ error: "A continuação deste job já está em andamento." });
     if (session.page.url().includes("/Identificacao")) {
       return res.status(409).json({ error: "O PGMEI ainda está na identificação. Conclua a validação na sessão visual e tente novamente." });
     }
+    session.continuing = true;
     const result = await processAfterManualCheck(req.params.id);
     return res.json(result);
   } catch (error) {
