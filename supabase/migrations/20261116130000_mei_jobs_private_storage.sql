@@ -26,6 +26,10 @@ create index if not exists mei_jobs_user_created_idx
 create index if not exists mei_jobs_pending_idx
   on public.mei_jobs (created_at)
   where status = 'pending';
+-- One request per client/competence unless the previous request ended in failure.
+create unique index if not exists mei_jobs_unique_client_competencia_idx
+  on public.mei_jobs (user_id, cliente_id, competencia)
+  where status in ('pending', 'processing', 'completed', 'paid');
 
 alter table public.mei_jobs enable row level security;
 grant select, insert on public.mei_jobs to authenticated;
