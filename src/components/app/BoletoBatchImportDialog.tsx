@@ -13,7 +13,7 @@ import { BUCKET_BOLETOS, ehPdf } from "@/lib/storage";
 import { extrairDadosDAS } from "@/lib/das-pdf";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-type Linha = { id: string; file: File; clienteId: string; competencia: string; valor: string; vencimento: string; erro?: string; aviso?: string };
+type Linha = { id: string; file: File; clienteId: string; competencia: string; valor: string; vencimento: string; vencimentoOriginal?: string | null; erro?: string; aviso?: string };
 
 export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: boolean; onOpenChange: (open: boolean) => void; userId: string }) {
   const queryClient = useQueryClient();
@@ -58,6 +58,7 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
         if (dados.competencia) linha.competencia = dados.competencia;
         if (dados.valor) linha.valor = dados.valor;
         if (dados.vencimento) linha.vencimento = dados.vencimento;
+        linha.vencimentoOriginal = dados.vencimentoOriginal;
         if (!dados.competencia || !dados.valor || !dados.vencimento) {
           linha.aviso = [linha.aviso, "Alguns campos não foram identificados; confira antes de importar."].filter(Boolean).join(" ");
         }
@@ -98,6 +99,7 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
 
         const { error: insertError } = await supabase.from("boletos").insert({
           cliente_id: linha.clienteId, competencia: linha.competencia, valor: valor!, vencimento: linha.vencimento,
+          vencimento_original: linha.vencimentoOriginal ?? null,
           arquivo_path: path, status: "pendente",
         });
         if (insertError) {
@@ -152,7 +154,7 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
                 <Input aria-label="Valor" placeholder="Valor (ex.: 75,90)" value={linha.valor} onChange={(e) => atualizar(linha.id, { valor: e.target.value })} />
                 <Input aria-label="Vencimento" type="date" value={linha.vencimento} onChange={(e) => atualizar(linha.id, { vencimento: e.target.value })} />
               </div>
-              {linha.aviso && <p className="mt-2 text-xs text-muted-foreground">{linha.aviso}</p>}{linha.erro && <p className="mt-2 text-xs text-destructive">{linha.erro}</p>}
+              {linha.vencimentoOriginal && linha.vencimentoOriginal !== linha.vencimento && <p className="mt-2 text-xs text-muted-foreground">Vencimento original: {new Date(`${linha.vencimentoOriginal}T12:00:00`).toLocaleDateString("pt-BR")} · Prazo para pagar: {new Date(`${linha.vencimento}T12:00:00`).toLocaleDateString("pt-BR")}</p>}{linha.aviso && <p className="mt-2 text-xs text-muted-foreground">{linha.aviso}</p>}{linha.erro && <p className="mt-2 text-xs text-destructive">{linha.erro}</p>}
             </div>
           ))}
         </div>}
