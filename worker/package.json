@@ -1,0 +1,16 @@
+{
+  "name": "mei-facil-worker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "parse:das": "node src/parse-das.js"
+  },
+  "dependencies": {
+    "pdfjs-dist": "^4.10.38"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
