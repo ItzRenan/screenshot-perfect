@@ -8,10 +8,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { clientesQuery } from "@/lib/queries";
-import { competenciaDe, formatCNPJ, isValidCompetencia, parseValorBRL, vencimentoPadrao } from "@/lib/format";
+import { competenciaDe, formatCNPJ, isValidCompetencia, onlyDigits, parseValorBRL, vencimentoPadrao } from "@/lib/format";
 import { BUCKET_BOLETOS, ehPdf } from "@/lib/storage";
 import { extrairDadosDAS } from "@/lib/das-pdf";
-import { onlyDigits } from "@/lib/format";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 type Linha = { id: string; file: File; clienteId: string; competencia: string; valor: string; vencimento: string; erro?: string; aviso?: string };
@@ -34,8 +33,12 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
         id: crypto.randomUUID(), file, clienteId: "", competencia: competenciaAtual, valor: "",
         vencimento: vencimentoPadrao(competenciaAtual, 20),
       };
-      if (file.size > MAX_BYTES || !(await ehPdf(file))) {
-        linha.aviso = file.size > MAX_BYTES ? "Arquivo acima de 10 MB." : "Arquivo não é um PDF válido.";
+      if (file.size > MAX_BYTES) {
+        linha.aviso = "Arquivo acima de 10 MB.";
+        return linha;
+      }
+      if (!(await ehPdf(file))) {
+        linha.aviso = "Arquivo não é um PDF válido.";
         return linha;
       }
       try {
