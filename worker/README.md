@@ -11,10 +11,12 @@ Camada isolada para consultar o PGMEI, validar PDFs DAS e persistir solicitaçõ
 - Download da resposta PDF e validação da assinatura `%PDF-`.
 - Ponto de parada explícito para validação humana quando o PGMEI mantiver o usuário na tela de identificação.
 - Testes automatizados de parser e validação dos parâmetros.
-- Migração para fila persistente `mei_jobs`, com reivindicação atômica para múltiplos workers.
+- Migração para fila persistente `mei_jobs`, com reivindicação atômica (`SKIP LOCKED`), recuperação de jobs abandonados após 15 minutos e limite de tentativas.
+- Restrição para impedir jobs duplicados para o mesmo cliente e competência (exceto quando o job anterior falhou).
 - Verificação de titularidade do cliente antes de criar/consultar jobs.
 - Bucket privado `boletos-mei`, com leitura limitada à pasta do próprio usuário.
 - Finalização transacional: o banco revalida CNPJ/competência e cria o registro em `boletos` ao concluir o job.
+- Testes de proteção para ausência de credenciais, competência inválida, titularidade do cliente e rejeição de arquivo que não seja PDF.
 - URLs de download assinadas e temporárias; não tornar o bucket público.
 
 ## Executar testes
