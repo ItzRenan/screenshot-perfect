@@ -155,8 +155,8 @@ begin
   select * into v_cliente from public.clientes
     where id = p_cliente_id and user_id = auth.uid();
   if not found then raise exception 'Cliente não encontrado'; end if;
-  if regexp_replace(coalesce(v_cliente.cnpj,''), '\\D', '', 'g') <>
-     regexp_replace(coalesce(p_cnpj,''), '\\D', '', 'g') then
+  if regexp_replace(coalesce(v_cliente.cnpj,''), '\D', '', 'g') <>
+     regexp_replace(coalesce(p_cnpj,''), '\D', '', 'g') then
     raise exception 'CNPJ não corresponde ao cliente selecionado';
   end if;
   if p_competencia !~ '^(0[1-9]|1[0-2])/[0-9]{4}$' or p_valor <= 0 or p_vencimento is null then
