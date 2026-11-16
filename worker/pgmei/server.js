@@ -21,7 +21,7 @@ if (!API_TOKEN || API_TOKEN.length < 32) {
 }
 
 function auth(req, res, next) {
-  const token = req.get("authorization")?.replace(/^Bearer\\s+/i, "");
+  const token = req.get("authorization")?.replace(/^Bearer\s+/i, "");
   if (!isAuthorizedToken(token, API_TOKEN)) {
     return res.status(401).json({ error: "Não autorizado." });
   }
@@ -63,7 +63,7 @@ app.post("/api/jobs", auth, async (req, res) => {
     const cnpj = String(req.body?.cnpj || "").replace(/\D/g, "");
     const competencia = String(req.body?.competencia || "");
     if (!/^\d{14}$/.test(cnpj)) return res.status(400).json({ error: "CNPJ deve conter 14 dígitos." });
-    if (!/^(0[1-9]|1[0-2])\/20\d{2}$/.test(competencia)) {
+    if (!isCompetenciaValida(competencia)) {
       return res.status(400).json({ error: "Competência deve estar no formato MM/AAAA." });
     }
     if (activeJobId) {
