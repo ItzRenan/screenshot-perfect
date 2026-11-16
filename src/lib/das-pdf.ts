@@ -9,6 +9,7 @@ export type DadosDASExtraidos = {
   competencia: string | null;
   valor: string | null;
   vencimento: string | null;
+  vencimentoOriginal: string | null;
   textoEncontrado: boolean;
 };
 
@@ -64,19 +65,24 @@ function extrair(textoBruto: string): DadosDASExtraidos {
     ? competenciaCandidata
     : null;
 
-  const vencimentoRaw = capturar(texto, [
-    /pagar este documento até\s*(\d{2}\/\d{2}\/\d{4})/i,
-    /(?:data de vencimento|vencimento)[^0-9]{0,100}(\d{2}\/\d{2}\/\d{4})/i,
-    /(?:data de vencimento|vencimento)[^0-9]{0,100}(\d{2}\.\d{2}\.\d{4})/i,
+  const vencimentoOriginalRaw = capturar(texto, [
+    /data de vencimento\s*[:\-]?\s*(\d{2}\/\d{2}\/\d{4})/i,
+    /data de vencimento\s*[:\-]?\s*(\d{2}\.\d{2}\.\d{4})/i,
   ]);
-  const vencimento = dataISO(vencimentoRaw);
+  const vencimentoOriginal = dataISO(vencimentoOriginalRaw);
+  const dataLimiteRaw = capturar(texto, [
+    /pagar este documento até\s*(\d{2}\/\d{2}\/\d{4})/i,
+    /pagar este documento até\s*(\d{2}\.\d{2}\.\d{4})/i,
+  ]);
+  const dataLimitePagamento = dataISO(dataLimiteRaw) ?? vencimentoOriginal;
+  const vencimento = dataLimitePagamento;
 
   const valorRaw = capturar(texto, [
     /(?:valor total do documento|valor total|valor a pagar|valor do DAS|total a recolher)\s*[:\-]?\s*(?:R\$\s*)?([0-9.]+,[0-9]{2})/i,
   ]);
   const valor = valorBR(valorRaw);
 
-  return { cnpj, competencia, valor, vencimento, textoEncontrado: texto.length > 30 };
+  return { cnpj, competencia, valor, vencimento, vencimentoOriginal: vencimentoOriginal ?? vencimento, textoEncontrado: texto.length > 30 };
 }
 
 export async function extrairDadosDAS(file: File): Promise<DadosDASExtraidos> {
