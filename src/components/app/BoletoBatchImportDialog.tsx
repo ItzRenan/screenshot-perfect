@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { clientesQuery } from "@/lib/queries";
 import { competenciaDe, formatCNPJ, isValidCompetencia, parseValorBRL, vencimentoPadrao } from "@/lib/format";
 import { BUCKET_BOLETOS, ehPdf } from "@/lib/storage";
+import { extrairDadosDAS } from "@/lib/das-pdf";
+import { onlyDigits } from "@/lib/format";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-type Linha = { id: string; file: File; clienteId: string; competencia: string; valor: string; vencimento: string; erro?: string };
+type Linha = { id: string; file: File; clienteId: string; competencia: string; valor: string; vencimento: string; erro?: string; aviso?: string };
 
 export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: boolean; onOpenChange: (open: boolean) => void; userId: string }) {
   const queryClient = useQueryClient();
@@ -25,11 +27,41 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
     setLinhas((atual) => atual.map((l) => l.id === id ? { ...l, ...patch, erro: undefined } : l));
   }
 
-  function selecionar(files: FileList | null) {
+  async function selecionar(files: FileList | null) {
     if (!files) return;
-    const novas = Array.from(files).map((file) => ({
-      id: crypto.randomUUID(), file, clienteId: "", competencia: competenciaAtual, valor: "",
-      vencimento: vencimentoPadrao(competenciaAtual, 20),
+    const novas = await Promise.all(Array.from(files).map(async (file) => {
+      const linha: Linha = {
+        id: crypto.randomUUID(), file, clienteId: "", competencia: competenciaAtual, valor: "",
+        vencimento: vencimentoPadrao(competenciaAtual, 20),
+      };
+      if (file.size > MAX_BYTES || !(await ehPdf(file))) {
+        linha.aviso = file.size > MAX_BYTES ? "Arquivo acima de 10 MB." : "Arquivo não é um PDF válido.";
+        return linha;
+      }
+      try {
+        const dados = await extrairDadosDAS(file);
+        if (!dados.textoEncontrado) {
+          linha.aviso = "O PDF não possui texto selecionável. Preencha os dados manualmente.";
+          return linha;
+        }
+        if (dados.cnpj) {
+          const correspondentes = clientes.filter((cliente) => onlyDigits(cliente.cnpj) === onlyDigits(dados.cnpj!));
+          if (correspondentes.length === 1) linha.clienteId = correspondentes[0].id;
+          else if (correspondentes.length > 1) linha.aviso = "CNPJ encontrado, mas há mais de um cadastro correspondente.";
+          else linha.aviso = "CNPJ extraído, mas não existe cliente cadastrado com esse documento.";
+        } else {
+          linha.aviso = "Não foi possível identificar um CNPJ válido no PDF.";
+        }
+        if (dados.competencia) linha.competencia = dados.competencia;
+        if (dados.valor) linha.valor = dados.valor;
+        if (dados.vencimento) linha.vencimento = dados.vencimento;
+        if (!dados.competencia || !dados.valor || !dados.vencimento) {
+          linha.aviso = [linha.aviso, "Alguns campos não foram identificados; confira antes de importar."].filter(Boolean).join(" ");
+        }
+      } catch {
+        linha.aviso = "Não foi possível ler este PDF. Confira os dados manualmente.";
+      }
+      return linha;
     }));
     setLinhas((atual) => [...atual, ...novas]);
   }
@@ -94,7 +126,7 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Importação de boletos em lote</DialogTitle>
-          <DialogDescription>Selecione vários PDFs e preencha os dados de cada boleto antes de salvar. Os arquivos são enviados individualmente para seu armazenamento privado.</DialogDescription>
+          <DialogDescription>Selecione vários PDFs. O sistema tenta identificar CNPJ, competência, valor e vencimento automaticamente; revise todos os campos antes de salvar.</DialogDescription>
         </DialogHeader>
         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-input bg-muted/40 p-5 text-sm hover:bg-accent/40">
           <FileUp className="size-5 text-primary" /> Selecionar vários PDFs
@@ -117,7 +149,7 @@ export function BoletoBatchImportDialog({ open, onOpenChange, userId }: { open: 
                 <Input aria-label="Valor" placeholder="Valor (ex.: 75,90)" value={linha.valor} onChange={(e) => atualizar(linha.id, { valor: e.target.value })} />
                 <Input aria-label="Vencimento" type="date" value={linha.vencimento} onChange={(e) => atualizar(linha.id, { vencimento: e.target.value })} />
               </div>
-              {linha.erro && <p className="mt-2 text-xs text-destructive">{linha.erro}</p>}
+              {linha.aviso && <p className="mt-2 text-xs text-muted-foreground">{linha.aviso}</p>}{linha.erro && <p className="mt-2 text-xs text-destructive">{linha.erro}</p>}
             </div>
           ))}
         </div>}
