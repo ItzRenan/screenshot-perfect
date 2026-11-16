@@ -36,7 +36,7 @@ async function chamarMeiJobs(body: Record<string, string>) {
   if (error) throw new Error(error.message);
   if (!data || typeof data !== "object") throw new Error("Resposta inválida do serviço MEI.");
   const payload = data as Record<string, unknown>;
-  if (typeof payload.error === "string") throw new Error(payload.error);
+  if (typeof payload["error"] === "string") throw new Error(payload["error"]);
   return payload;
 }
 
@@ -79,8 +79,8 @@ export function MeiEmissionDialog({ open, onOpenChange }: { open: boolean; onOpe
         throw new Error("Informe a competência no formato MM/AAAA.");
       }
       const payload = await chamarMeiJobs({ action: "create", clienteId, competencia });
-      if (typeof payload.id !== "string") throw new Error("O serviço não retornou o identificador da solicitação.");
-      return payload.id;
+      if (typeof payload["id"] !== "string") throw new Error("O serviço não retornou o identificador da solicitação.");
+      return payload["id"];
     },
     onSuccess: (id) => {
       setJobId(id);
@@ -121,8 +121,8 @@ export function MeiEmissionDialog({ open, onOpenChange }: { open: boolean; onOpe
     if (!jobId) return;
     try {
       const payload = await chamarMeiJobs({ action: "file", jobId });
-      if (typeof payload.url !== "string") throw new Error("O serviço não retornou o link do PDF.");
-      window.open(payload.url, "_blank", "noopener,noreferrer");
+      if (typeof payload["url"] !== "string") throw new Error("O serviço não retornou o link do PDF.");
+      window.open(payload["url"], "_blank", "noopener,noreferrer");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível obter o PDF.");
     }
