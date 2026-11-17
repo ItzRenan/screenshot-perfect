@@ -1,0 +1,5 @@
+{$WORKER_DOMAIN} {
+    @health path /health
+    respond @health 404
+    reverse_proxy mei-facil-worker:3000
+}

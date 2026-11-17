@@ -1,0 +1,21 @@
+{
+  "name": "mei-facil-worker",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "test": "npm run check && node --test",
+    "parse:das": "node src/parse-das.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js && node --check src/supabase-queue.js && node --check src/pgmei-flow.js && node --check src/parse-das.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "express": "^5.1.0",
+    "pdfjs-dist": "^4.10.38",
+    "puppeteer": "^24.15.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

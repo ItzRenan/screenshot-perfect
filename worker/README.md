@@ -1,0 +1,65 @@
+# MEI Fácil — worker em nuvem
+
+Worker experimental que consome jobs persistidos no Supabase, abre uma sessão visual Chromium para o PGMEI, aguarda a validação humana, extrai o PDF DAS e registra o boleto no Supabase.
+
+## Configuração local/VPS
+
+Crie um arquivo `.env` local (não versionar) com:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `API_TOKEN` (segredo aleatório com pelo menos 32 caracteres)
+
+Antes, aplique pelo fluxo gerenciado do Lovable a migration `supabase/migrations/20261116120000_mei_jobs_queue.sql`, seguindo `worker/SUPABASE_SETUP.md`. Confirme as tabelas e políticas existentes antes de aplicar.
+
+Na pasta `worker`, execute:
+
+```bash
+docker compose up -d --build
+```
+
+Portas ficam limitadas ao loopback do host:
+- API: `http://127.0.0.1:3000`
+- Sessão PGMEI: `http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale`
+
+Em VPS, acesse por túnel SSH. Não exponha API/VNC diretamente à internet. O token é segredo de servidor e nunca deve ser colocado no frontend/browser.
+
+## Fluxo
+
+1. Um backend confiável chama `POST /api/jobs` com `userId`, `clienteId` e `competencia` (MM/AAAA).
+2. O consumidor reivindica atomicamente o job via `claim_mei_job()`.
+3. O Chromium abre o PGMEI e preenche o CNPJ do cadastro pertencente ao usuário.
+4. O operador acessa a sessão visual, conclui manualmente qualquer validação e chama `POST /api/jobs/:id/continue`.
+5. O worker navega até a competência, identifica DAS já pago ou baixa o PDF, extrai os dados, confere CNPJ/competência, armazena no bucket privado e cria o registro em `boletos`.
+6. `GET /api/jobs/:id` informa status/etapa; `GET /api/jobs/:id/file` devolve URL assinada com validade de 60 segundos.
+
+Todas as rotas `/api` exigem `Authorization: Bearer API_TOKEN`. A autenticação atual é adequada apenas para chamadas servidor-a-servidor. A interface do MEI Fácil deve chamar uma Edge Function/backend autenticado, nunca receber a service-role key ou API_TOKEN.
+
+## Endpoints
+
+- `GET /health`
+- `POST /api/jobs`
+- `GET /api/jobs/:id`
+- `POST /api/jobs/:id/continue`
+- `GET /api/jobs/:id/file`
+- `POST /api/jobs/:id/close`
+
+## Limitações e segurança
+
+- O worker processa uma sessão de navegador por instância.
+- A sessão visual é efêmera; reinício do container interrompe o browser. A fila reencaminha leases abandonados após 15 minutos.
+- Não há bypass de CAPTCHA ou mecanismo anti-automação; intervenção humana é necessária quando exigida pelo PGMEI.
+- Seletores e emissão precisam de teste real controlado no PGMEI.
+- A interface de solicitação e acompanhamento já está conectada à Edge Function na branch `feat/mei-facil-cloud-worker`, mas ainda não foi publicada. O teste real de navegação/emissão continua pendente. Não aplique a migration nem configure secrets de produção sem revisão e autorização.
+- Não há envio por WhatsApp.
+
+## Ponte autenticada com o aplicativo
+
+A Edge Function `supabase/functions/mei-jobs/index.ts` recebe chamadas autenticadas pela sessão Supabase do usuário, verifica a titularidade do cliente/job usando o JWT do próprio usuário e encaminha as operações ao worker. O token da API do worker nunca deve ser enviado ao navegador.
+
+Configure nos Secrets do projeto Supabase/Lovable:
+- `MEI_WORKER_URL`: URL interna/HTTPS do worker, sem barra final.
+- `MEI_WORKER_API_TOKEN`: o mesmo token configurado no container.
+- `SUPABASE_ANON_KEY` ou `SUPABASE_PUBLISHABLE_KEY`: chave pública do projeto, se não estiver disponível no ambiente padrão da Edge Function.
+
+A Edge Function também depende da tabela `mei_jobs` descrita em `worker/SUPABASE_SETUP.md`. Configure `WORKER_DOMAIN` com um domínio cujo DNS aponte para a VPS e `MEI_WORKER_URL=https://<WORKER_DOMAIN>` nos secrets da Edge Function. O Caddy emite HTTPS automaticamente e encaminha somente à API; a porta 3000 não é publicada no host e o noVNC continua restrito ao loopback. A API usa `API_TOKEN` e o endpoint `/health` é bloqueado externamente. Até o DNS, os secrets, o schema e a função serem configurados/publicados, a integração não estará operacional.
